@@ -17,6 +17,17 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // バリデーションスキーマの定義
 const formSchema = z.object({
@@ -60,6 +71,7 @@ type FormValues = z.infer<typeof formSchema>;
 const Index = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<FormValues | null>(null);
   const { toast } = useToast();
   
   // フォームの初期化
@@ -76,9 +88,17 @@ const Index = () => {
 
   // フォーム送信処理
   const onSubmit = async (values: FormValues) => {
+    // Store form data for confirmation dialog
+    setFormData(values);
+  };
+
+  // 確認後の送信処理
+  const handleConfirmedSubmit = async () => {
+    if (!formData) return;
+
     try {
       setIsSubmitting(true);
-      console.log(values);
+      console.log(formData);
       
       // 送信の遅延をシミュレート (実際のAPIリクエストを代わりに使用する)
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -266,13 +286,34 @@ const Index = () => {
             />
 
             {/* 送信ボタン */}
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "送信中..." : "送信する"}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  type="button" 
+                  className="w-full"
+                  disabled={!form.formState.isValid || isSubmitting}
+                >
+                  送信する
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>送信の確認</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    入力内容で送信してよろしいですか？
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleConfirmedSubmit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "送信中..." : "送信"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </form>
         </Form>
       </div>
