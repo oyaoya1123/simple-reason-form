@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -59,6 +59,8 @@ type FormValues = z.infer<typeof formSchema>;
 
 const Index = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   
   // フォームの初期化
   const form = useForm<FormValues>({
@@ -73,11 +75,33 @@ const Index = () => {
   });
 
   // フォーム送信処理
-  const onSubmit = (values: FormValues) => {
-    console.log(values);
-    // ここで実際のAPIリクエストを行う
-    // 成功したらsetIsSubmitted(true)を実行
-    setIsSubmitted(true);
+  const onSubmit = async (values: FormValues) => {
+    try {
+      setIsSubmitting(true);
+      console.log(values);
+      
+      // 送信の遅延をシミュレート (実際のAPIリクエストを代わりに使用する)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // 送信成功時のトースト通知
+      toast({
+        title: "送信完了",
+        description: "退会理由が正常に送信されました。",
+      });
+      
+      // 送信完了画面へ遷移
+      setIsSubmitted(true);
+    } catch (error) {
+      // エラー発生時のトースト通知
+      toast({
+        title: "エラーが発生しました",
+        description: "送信に失敗しました。もう一度お試しください。",
+        variant: "destructive",
+      });
+      console.error("送信エラー:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // 送信完了画面
@@ -242,7 +266,13 @@ const Index = () => {
             />
 
             {/* 送信ボタン */}
-            <Button type="submit" className="w-full">送信する</Button>
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "送信中..." : "送信する"}
+            </Button>
           </form>
         </Form>
       </div>
